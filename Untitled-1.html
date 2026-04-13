@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Sistem Informasi Rumah Sakit</title>
+
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: linear-gradient(to right, #dfe9f3, #ffffff);
+}
+
+header {
+  background: #2c3e50;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.02);
+}
+
+input {
+  padding: 8px;
+  margin: 5px;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2980b9;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th, .table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.table th {
+  background: #3498db;
+  color: white;
+}
+
+.high { color: red; font-weight: bold; }
+.medium { color: orange; }
+.low { color: green; }
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🏥 Sistem Informasi Rumah Sakit</h1>
+</header>
+
+<div class="container">
+
+<!-- DASHBOARD -->
+<div class="card">
+<h3>Dashboard</h3>
+<p>Total Pasien: <span id="total">0</span></p>
+<p>Antrian IGD: <span id="totalQueue">0</span></p>
+</div>
+
+<!-- INPUT -->
+<div class="card">
+<h3>Input Pasien</h3>
+<input id="nama" placeholder="Nama">
+<input id="umur" placeholder="Umur">
+<input id="darurat" placeholder="Darurat (1-3)">
+<button onclick="tambahPasien()">Tambah</button>
+<div id="notif"></div>
+</div>
+
+<!-- ARRAY -->
+<div class="card">
+<h3>Data Pasien (Array)</h3>
+<button onclick="tampilkanPasien()">Tampilkan</button>
+<div id="data"></div>
+</div>
+
+<!-- QUEUE -->
+<div class="card">
+<h3>Antrian IGD (Queue - FIFO)</h3>
+<button onclick="lihatQueue()">Lihat</button>
+<button onclick="prosesQueue()">Proses</button>
+<div id="queue"></div>
+</div>
+
+<!-- PRIORITY -->
+<div class="card">
+<h3>Priority Queue</h3>
+<button onclick="lihatPriority()">Lihat</button>
+<div id="priority"></div>
+</div>
+
+<!-- STACK -->
+<div class="card">
+<h3>Riwayat (Stack - LIFO)</h3>
+<button onclick="lihatStack()">Lihat</button>
+<div id="stack"></div>
+</div>
+
+<!-- LINKED LIST -->
+<div class="card">
+<h3>Linked List (Pointer)</h3>
+<button onclick="tampilkanList()">Tampilkan</button>
+<div id="list"></div>
+</div>
+
+</div>
+
+<script>
+
+// DATA
+let pasien = [];
+let stack = [];
+let queue = [];
+let priorityQueue = [];
+
+// DASHBOARD
+function updateDashboard() {
+  document.getElementById("total").innerText = pasien.length;
+  document.getElementById("totalQueue").innerText = queue.length;
+}
+
+// TAMBAH PASIEN
+function tambahPasien() {
+  let nama = document.getElementById("nama").value;
+  let umur = document.getElementById("umur").value;
+  let darurat = parseInt(document.getElementById("darurat").value);
+
+  if (!nama || !umur || !darurat) {
+    notif.innerHTML = "<b style='color:red'>Isi semua data!</b>";
+    return;
+  }
+
+  let status = darurat == 3 ? "Tinggi" : darurat == 2 ? "Sedang" : "Rendah";
+
+  let data = { nama, umur, darurat, status };
+
+  pasien.push(data);
+  stack.push(data);
+  queue.push(data);
+  priorityQueue.push(data);
+  list.tambah(data);
+
+  notif.innerHTML = "<b style='color:green'>Pasien berhasil ditambahkan!</b>";
+
+  updateDashboard();
+}
+
+// ARRAY
+function tampilkanPasien() {
+  let html = "<table class='table'><tr><th>Nama</th><th>Umur</th><th>Status</th><th>Aksi</th></tr>";
+
+  pasien.forEach((p, index) => {
+    let cls = p.darurat == 3 ? "high" : p.darurat == 2 ? "medium" : "low";
+    html += `<tr>
+      <td>${p.nama}</td>
+      <td>${p.umur}</td>
+      <td class='${cls}'>${p.status}</td>
+      <td><button onclick="hapus(${index})">Hapus</button></td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  data.innerHTML = html;
+}
+
+// HAPUS
+function hapus(index) {
+  pasien.splice(index, 1);
+  tampilkanPasien();
+  updateDashboard();
+}
+
+// QUEUE
+function lihatQueue() {
+  let html = "";
+  queue.forEach(p => html += p.nama + "<br>");
+  document.getElementById("queue").innerHTML = html;
+}
+
+function prosesQueue() {
+  let p = queue.shift();
+  document.getElementById("queue").innerHTML = p ? "Diproses: " + p.nama : "Kosong";
+  updateDashboard();
+}
+
+// PRIORITY
+function lihatPriority() {
+  let sorted = [...priorityQueue].sort((a,b) => b.darurat - a.darurat);
+  let html = "";
+  sorted.forEach(p => html += `${p.nama} (Level ${p.darurat})<br>`);
+  document.getElementById("priority").innerHTML = html;
+}
+
+// STACK
+function lihatStack() {
+  let html = "";
+  for (let i = stack.length - 1; i >= 0; i--) {
+    html += stack[i].nama + "<br>";
+  }
+  document.getElementById("stack").innerHTML = html;
+}
+
+// LINKED LIST
+class Node {
+  constructor(data) {
+    this.data = data;
+    this.next = null;
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this.head = null;
+  }
+
+  tambah(data) {
+    let node = new Node(data);
+    if (!this.head) {
+      this.head = node;
+    } else {
+      let temp = this.head;
+      while (temp.next) {
+        temp = temp.next;
+      }
+      temp.next = node;
+    }
+  }
+
+  tampilkan() {
+    let temp = this.head;
+    let hasil = "";
+    while (temp) {
+      hasil += temp.data.nama + " → ";
+      temp = temp.next;
+    }
+    return hasil + "NULL";
+  }
+}
+
+let list = new LinkedList();
+
+function tampilkanList() {
+  document.getElementById("list").innerHTML = list.tampilkan();
+}
+
+</script>
+
+</body>
+</html>
